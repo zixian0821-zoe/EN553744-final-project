@@ -17,13 +17,13 @@ and fusion is a linear combination of two graph shift operators
 
 | Folder | Owner | Push status | Contents |
 |---|---|---|
-| `data_preprocessing/` | Zixian Zhou | Included in this push | Download + materialize Amazon Reviews 2023 |
-| `pipeline/` | Zixian Zhou | Included in this push | Shared core: features, graphs, BPR loss, training loop, Exp 2 models (MLP / GCN / fused-α / learned-α / per-user-α) |
-| `exp1_signal_smoothness/` | Zixian Zhou | Included in this push | Dirichlet energy + permutation test |
-| `exp2_fusion/` | Zixian Zhou | Included in this push | α schemes (fixed / learned / per-user) + cold-start audits |
-| `exp4b_transfer/` | Zixian Zhou | Included in this push | 3×3 transferability matrix + feature ablation + spectral analysis |
-| `exp3_architecture/` | Exp 3 contributor | Not included in this push | ChebNet K=3 / GraphSAGE / GAT comparison |
-| `exp4a_stability/` | Exp 4a contributor | Not included in this push | Within-graph perturbation analysis |
+| `data_preprocessing/` | Zixian Zhou | Included | Download + materialize Amazon Reviews 2023 |
+| `pipeline/` | Zixian Zhou | Included | Shared core: features, graphs, BPR loss, training loop, Exp 2 models (MLP / GCN / fused-α / learned-α / per-user-α) |
+| `exp1_signal_smoothness/` | Zixian Zhou | Included | Dirichlet energy + permutation test |
+| `exp2_fusion/` | Zixian Zhou | Included | α schemes (fixed / learned / per-user) + cold-start audits |
+| `exp3_architecture/` | Exp 3 contributor | Included | ChebNet K=3 / GraphSAGE / GAT comparison |
+| `exp4a_stability/` | Exp 4a contributor | Included | Within-graph perturbation analysis |
+| `exp4b_transfer/` | Zixian Zhou | Included | 3×3 transferability matrix + feature ablation + spectral analysis |
 
 `pipeline/` is added to `sys.path` by every experiment runner via a small
 bootstrap header (`_PIPELINE_DIR = ../pipeline`). No package install needed.
@@ -36,6 +36,8 @@ bootstrap header (`_PIPELINE_DIR = ../pipeline`). No package install needed.
 |---|---|
 | Exp 1 — Smoothness | z = −10.13, p < 0.005 (0/200 perms below observed) |
 | Exp 2 — Fusion | fixed α = 0.5: 0.001904 (+15.7 % vs MLP); learned-α → 0.478 |
+| Exp 3 — Architecture | ChebNet K=3 / GraphSAGE / GAT comparison on the fused graph |
+| Exp 4a — Stability | within-graph perturbation analysis |
 | Exp 4b — Transfer | src→tgt = 0.002292 (93 % of tgt self-ceiling, only −6.9 %); topology ≈ 84 %, features ≈ 19 %; W₁(S_src, S_tgt) = 0.023 |
 
 ---
@@ -70,6 +72,19 @@ python exp1_signal_smoothness/rerun_on_exp2_graph.py
 python pipeline/run_recommendation_experiment.py
 python exp2_fusion/find_per_user_alpha.py
 python exp2_fusion/rebuild_p80_comparison.py
+```
+
+### Exp 3 — Architecture comparison
+```
+python "exp3_architecture/run_recommendation_experiment.py"
+python "exp3_architecture/train_recommendation.py"
+```
+
+### Exp 4a — Stability
+```
+# Current repository copy is a Colab export.
+# Run it in Colab, or clean the notebook-specific setup before CLI execution.
+python "exp4a_stability/stability (2).py"
 ```
 
 ### Exp 4b — Cross-graph transfer + spectral
