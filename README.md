@@ -1,29 +1,34 @@
 # EN.553.744 — Cross-Domain Recommendation as a Graph Signal Processing Problem
 
-**Course:** EN.553.744 Data Science for Large-Scale Graphs (Spring 2026)
+**Course:** EN.553.744 Data Science for Large-Scale Graphs (Spring 2026, JHU AMS)
 **Team:** Yunwei Chai · Yang Song · Zixian Zhou
-**Dataset:** Amazon Reviews 2023 — CDs/Vinyl (source) → Books (target)
+**Dataset:** Amazon Reviews 2023 — CDs/Vinyl (source) → Books (target), disjoint user catalogs
 **Reference:** Liu et al., *Graph Signal Processing for Cross-Domain Recommendation* (arXiv:2407.12374)
 
 We test whether the geometry of the music domain can substitute for missing
 structure in the book domain when the user catalogs are disjoint. Book
-preferences are a graph signal, the user-similarity network is the support,
-and fusion is a linear combination of two graph shift operators
-**S_fused = α·S_src + (1−α)·S_tgt**.
+preferences are treated as a graph signal, the user-similarity network as the
+support, and fusion as a linear combination of two graph shift operators:
+
+> **S_fused = α · S_src + (1 − α) · S_tgt**
+
+The repo contains the full pipeline (data → graphs → features → BPR training
+→ evaluation) plus five experiments that probe smoothness, fusion, GNN
+architecture, stability under perturbation, and cross-graph transfer.
 
 ---
 
-## Repository layout & ownership
+## Repository layout
 
-| Folder | Owner | Push status | Contents |
+| Folder | Owner | Contents |
 |---|---|---|
-| `data_preprocessing/` | Zixian Zhou | Included | Download + materialize Amazon Reviews 2023 |
-| `pipeline/` | Zixian Zhou | Included | Shared core: features, graphs, BPR loss, training loop, Exp 2 models (MLP / GCN / fused-α / learned-α / per-user-α) |
-| `exp1_signal_smoothness/` | Zixian Zhou | Included | Dirichlet energy + permutation test |
-| `exp2_fusion/` | Zixian Zhou | Included | α schemes (fixed / learned / per-user) + cold-start audits |
-| `exp3_architecture/` | Exp 3 contributor | Included | ChebNet K=3 / GraphSAGE / GAT comparison |
-| `exp4a_stability/` | Exp 4a contributor | Included | Within-graph perturbation analysis |
-| `exp4b_transfer/` | Zixian Zhou | Included | 3×3 transferability matrix + feature ablation + spectral analysis |
+| `data_preprocessing/` | Zixian Zhou | Download + materialize Amazon Reviews 2023 (CDs/Vinyl, Books) |
+| `pipeline/` | Zixian Zhou | Shared core: features, graphs, BPR loss, training loop, Exp 2 models (MLP / GCN / fused-α / learned-α / per-user-α) |
+| `exp1_signal_smoothness/` | Zixian Zhou | Dirichlet energy + permutation test on the book signal |
+| `exp2_fusion/` | Zixian Zhou | α schemes (fixed / learned / per-user) + cold-start audits |
+| `exp3_architecture/` | Yang Song | ChebNet K=3 / GraphSAGE / GCN / GAT / MLP comparison on the fused graph |
+| `exp4a_stability/` | Yunwei Chai | Within-graph perturbation analysis (edge dropout / edge-weight noise / feature noise) |
+| `exp4b_transfer/` | Zixian Zhou | 3×3 transferability matrix + feature ablation + spectral (Wasserstein) analysis |
 
 `pipeline/` is added to `sys.path` by every experiment runner via a small
 bootstrap header (`_PIPELINE_DIR = ../pipeline`). No package install needed.
@@ -34,11 +39,14 @@ bootstrap header (`_PIPELINE_DIR = ../pipeline`). No package install needed.
 
 | Experiment | Result |
 |---|---|
-| Exp 1 — Smoothness | z = −10.13, p < 0.005 (0/200 perms below observed) |
-| Exp 2 — Fusion | fixed α = 0.5: 0.001904 (+15.7 % vs MLP); learned-α → 0.478 |
-| Exp 3 — Architecture | ChebNet K=3 / GraphSAGE / GAT comparison on the fused graph |
-| Exp 4a — Stability | within-graph perturbation analysis |
-| Exp 4b — Transfer | src→tgt = 0.002292 (93 % of tgt self-ceiling, only −6.9 %); topology ≈ 84 %, features ≈ 19 %; W₁(S_src, S_tgt) = 0.023 |
+| Exp 1 — Smoothness | z = −10.13, p < 0.005 (0/200 random permutations below the observed Dirichlet energy) |
+| Exp 2 — Fusion | fixed α = 0.5 → 0.001904 (+15.7 % vs MLP); learned-α converges to **α* ≈ 0.478** |
+| Exp 3 — Architecture | ChebNet K=3 = 0.002302 (+20.9 % vs GCN); GraphSAGE = 0.001932; GCN = 0.001904; MLP = 0.001645; GAT = 0.001630 |
+| Exp 4a — Stability | All three top architectures degrade gracefully; ChebNet most accurate but most feature-noise sensitive (~21 % drop at σ = 0.20); GraphSAGE flattest |
+| Exp 4b — Transfer | src → tgt = 0.002292 (93 % of the tgt self-ceiling, only −6.9 %); topology ≈ 84 %, features ≈ 19 %; W₁(S_src, S_tgt) = 0.023 |
+
+The fusion gain in Exp 2 is consistent with the smoothness gap measured in
+Exp 1 and the topology-vs-features decomposition in Exp 4b.
 
 ---
 
@@ -46,7 +54,7 @@ bootstrap header (`_PIPELINE_DIR = ../pipeline`). No package install needed.
 
 All runners assume Stage-1 artifacts (graphs, features, splits) exist under
 `pipeline/results/`. Build them first via `data_preprocessing/` and the
-Stage-1 scripts in `pipeline/`. The exact paths are configured in
+Stage-1 scripts in `pipeline/`. Paths are configured in
 `pipeline/recommendation_config.py`.
 
 ### Stage 0 — Data preprocessing
@@ -72,18 +80,21 @@ python exp1_signal_smoothness/rerun_on_exp2_graph.py
 python pipeline/run_recommendation_experiment.py
 python exp2_fusion/find_per_user_alpha.py
 python exp2_fusion/rebuild_p80_comparison.py
+python exp2_fusion/run_supplement_strict_coldstart.py
 ```
 
 ### Exp 3 — Architecture comparison
 ```
-python "exp3_architecture/run_recommendation_experiment.py"
-python "exp3_architecture/train_recommendation.py"
+python exp3_architecture/run_recommendation_experiment.py
+python exp3_architecture/train_recommendation.py
+python "exp3_architecture/learning curve.py"
+python exp3_architecture/raking.py
 ```
 
 ### Exp 4a — Stability
 ```
-# Current repository copy is a Colab export.
-# Run it in Colab, or clean the notebook-specific setup before CLI execution.
+# Current copy is a Colab export (notebook-style setup, mounts Drive).
+# Run it in Colab, or strip the notebook-specific cells before CLI execution.
 python "exp4a_stability/stability (2).py"
 ```
 
@@ -99,11 +110,22 @@ python exp4b_transfer/exp4b_spectral_analysis.py
 ## Dependencies
 
 Tested on Python 3.11+, CUDA 12.x. Core stack: PyTorch 2.x, torch-geometric,
-scipy, numpy, pandas, matplotlib.
+scipy, numpy, pandas, scikit-learn, matplotlib, tqdm.
 
 ```
 pip install -r requirements.txt
 ```
 
-`torch-geometric` requires PyTorch wheels; on Colab use
+`torch-geometric` needs PyTorch wheels first; on Colab use
 `!pip install torch_geometric` after the matching torch is loaded.
+
+---
+
+## Data and artifacts
+
+Raw Amazon Reviews 2023 dumps, intermediate `.parquet` / `.npz` graphs,
+trained checkpoints, and per-run result CSVs are excluded from version
+control (see `.gitignore`). Only the small JSON summaries
+(`ranking_summary.json`, `metrics.json`, `spectral_analysis_results.json`)
+are kept under `results/` so reviewers can see headline numbers without
+rebuilding the pipeline.
