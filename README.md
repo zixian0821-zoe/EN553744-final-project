@@ -1,7 +1,7 @@
 # EN.553.744 — Cross-Domain Recommendation as a Graph Signal Processing Problem
 
 **Course:** EN.553.744 Data Science for Large-Scale Graphs (Spring 2026, JHU AMS)
-**Team:** Yunwei Chai · Yang Song · Zixian Zhou
+**Team:** Zixian Zhou · Yunwei Chai · Yang Song
 **Dataset:** Amazon Reviews 2023 — CDs/Vinyl (source) → Books (target), disjoint user catalogs
 **Reference:** Liu et al., *Graph Signal Processing for Cross-Domain Recommendation* (arXiv:2407.12374)
 
