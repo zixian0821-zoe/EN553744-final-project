@@ -23,15 +23,20 @@ architecture, stability under perturbation, and cross-graph transfer.
 | Folder | Owner | Contents |
 |---|---|---|
 | `data_preprocessing/` | Zixian Zhou | Download + materialize Amazon Reviews 2023 (CDs/Vinyl, Books) |
-| `pipeline/` | Zixian Zhou | Shared core: features, graphs, BPR loss, training loop, Exp 2 models (MLP / GCN / fused-α / learned-α / per-user-α) |
+| `pipeline/` | Zixian Zhou | Shared core: features, graphs, BPR loss, training loop, Exp 2 models (MLP / GCN / fused-α / learned-α / per-user-α). Used directly by Exp 1 / Exp 2 / Exp 4b |
 | `exp1_signal_smoothness/` | Zixian Zhou | Dirichlet energy + permutation test on the book signal |
 | `exp2_fusion/` | Zixian Zhou | α schemes (fixed / learned / per-user) + cold-start audits |
-| `exp3_architecture/` | Yang Song | ChebNet K=3 / GraphSAGE / GCN / GAT / MLP comparison on the fused graph |
-| `exp4a_stability/` | Yunwei Chai | Within-graph perturbation analysis (edge dropout / edge-weight noise / feature noise) |
+| `exp3_architecture/` | Yang Song | ChebNet K=3 / GraphSAGE / GCN / GAT / MLP comparison on the fused graph. Contains an **extended fork** of `pipeline/recommendation_models.py`, `pipeline/train_recommendation.py`, `pipeline/run_recommendation_experiment.py` that adds the new architectures (not merged back into `pipeline/`) |
+| `exp4a_stability/` | Yunwei Chai | Within-graph perturbation analysis (edge dropout / edge-weight noise / feature noise). Imports the **exp3-forked** modules — see `exp4a_stability/README.md` |
 | `exp4b_transfer/` | Zixian Zhou | 3×3 transferability matrix + feature ablation + spectral (Wasserstein) analysis |
 
-`pipeline/` is added to `sys.path` by every experiment runner via a small
-bootstrap header (`_PIPELINE_DIR = ../pipeline`). No package install needed.
+Most experiment runners add `pipeline/` to `sys.path` via a small bootstrap
+header (`_PIPELINE_DIR = ../pipeline`); no package install needed.
+**Exception:** `exp4a_stability/stability.py` is a Colab export and hardcodes
+a Drive path (`/content/drive/MyDrive/.../Experiment2`) where the two
+exp3-forked modules and a copy of `recommendation_config.py` were placed
+at run time. See `exp4a_stability/README.md` for the exact module-source
+mapping and the steps to re-execute it outside Colab.
 
 ---
 
@@ -93,9 +98,12 @@ python exp3_architecture/raking.py
 
 ### Exp 4a — Stability
 ```
-# Current copy is a Colab export (notebook-style setup, mounts Drive).
-# Run it in Colab, or strip the notebook-specific cells before CLI execution.
-python "exp4a_stability/stability (2).py"
+# stability.py is a Colab export: it mounts Drive and imports the
+# exp3-forked train_recommendation.py / recommendation_models.py plus
+# pipeline's recommendation_config.py from a Drive path.
+# See exp4a_stability/README.md for the exact module-source mapping
+# and Colab-vs-CLI instructions.
+python exp4a_stability/stability.py
 ```
 
 ### Exp 4b — Cross-graph transfer + spectral

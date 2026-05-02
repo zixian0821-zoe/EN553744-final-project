@@ -7,8 +7,7 @@ from Exp 3 to measure graceful degradation under realistic noise.
 
 | File | Purpose |
 |---|---|
-| `stability (2).py` | Working runner — Colab export (391 lines). Mounts Drive, applies the three perturbation families, re-trains ChebNet K=3 / GraphSAGE / GCN under three seeds, writes summary CSVs |
-| `stability.py` | Empty placeholder for a CLI-cleaned version (Colab cells stripped). Not yet populated |
+| `stability.py` | Working runner — Colab export. Mounts Drive, applies the three perturbation families, re-trains ChebNet K=3 / GraphSAGE / GCN under three seeds, writes summary CSVs |
 
 ## Perturbations swept
 
@@ -22,22 +21,29 @@ Three architectures × three seeds (42, 43, 44).
 
 ## Running
 
-The current copy is a Colab-style script. Either:
+`stability.py` is a Colab export. Either:
 
-1. **Run in Colab** — upload `stability (2).py` as a notebook cell and run end-to-end. Requires the same `pipeline/` artifacts mounted under Drive.
-2. **CLI** — first strip the `google.colab` import, the Drive mount, and the `!pip install` lines, then:
+1. **Colab (intended path)** — open the file in Colab, mount Drive, and run end-to-end. The script hardcodes its `PROJECT_ROOT` to `/content/drive/MyDrive/large_scale_graph_final_project-yang-744/Experiment2`, where the exp3-forked `recommendation_models.py`, `train_recommendation.py`, and `recommendation_config.py` were placed at run time. The Stage-1 artifacts must also be reachable from `recommendation_config.RecommendationConfig()`.
+2. **CLI** — strip the `google.colab` import, the `drive.mount(...)` call, and the `!pip install` lines; assemble the three required modules (see the Dependency table below) into a single directory; point `PROJECT_ROOT` at it; then:
    ```
-   python "exp4a_stability/stability (2).py"
+   python exp4a_stability/stability.py
    ```
-   Output lands in `pipeline/results/stability/{stability_results.csv, stability_summary.csv}` plus per-perturbation degradation curves.
+   Output lands in `<PROJECT_ROOT>/results/stability/{stability_results.csv, stability_summary.csv}` plus per-perturbation degradation curves.
 
 ## Dependency
 
-Imports `pipeline/recommendation_models.py` and
-`pipeline/train_recommendation.py` and expects them to expose ChebNet /
-GraphSAGE — i.e. it depends on Exp 3's extensions to those two files. Run
-Exp 3 first (or copy `exp3_architecture/recommendation_models.py` and
-`exp3_architecture/train_recommendation.py` into `pipeline/`).
+`stability.py` imports three modules from `PROJECT_ROOT`:
+
+| Module | Source on GitHub | Notes |
+|---|---|---|
+| `recommendation_config` | `pipeline/recommendation_config.py` | Not forked by Exp 3 — pipeline copy is fine |
+| `train_recommendation` | `exp3_architecture/train_recommendation.py` | **Exp 3 fork** — adds ChebNet / GraphSAGE support; pipeline version does not |
+| `recommendation_models` | `exp3_architecture/recommendation_models.py` | **Exp 3 fork** — defines ChebNet / GraphSAGE / fixed-fused GCN; pipeline version does not |
+
+At Colab run-time all three were placed together inside the Drive
+folder `Experiment2/` (which is what `PROJECT_ROOT` points to). To run
+this script outside Colab, assemble the same three files into a single
+directory and point `PROJECT_ROOT` at it.
 
 ## Headline behaviour
 
