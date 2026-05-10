@@ -47,7 +47,7 @@ mapping and the steps to re-execute it outside Colab.
 | Exp 1 — Smoothness | z = −10.13, p < 0.005 (0/200 random permutations below the observed Dirichlet energy) |
 | Exp 2 — Fusion | fixed α = 0.5 → 0.001904 (+15.7 % vs MLP); learned-α converges to **α* ≈ 0.478** |
 | Exp 3 — Architecture | ChebNet K=3 = 0.002302 (+20.9 % vs GCN); GraphSAGE = 0.001932; GCN = 0.001904; MLP = 0.001645; GAT = 0.001630 |
-| Exp 4a — Stability | All three top architectures degrade gracefully; ChebNet most accurate but most feature-noise sensitive (~21 % drop at σ = 0.20); GraphSAGE flattest |
+| Exp 4a — Stability | All three top architectures degrade gracefully; structural edge dropout is the most damaging perturbation; ChebNet is most accurate but drops ~7.6 % under edge dropout, GraphSAGE is most robust, and GCN is least stable |
 | Exp 4b — Transfer | src → tgt = 0.002292 (93 % of the tgt self-ceiling, only −6.9 %); topology ≈ 84 %, features ≈ 19 %; W₁(S_src, S_tgt) = 0.023 |
 
 The fusion gain in Exp 2 is consistent with the smoothness gap measured in

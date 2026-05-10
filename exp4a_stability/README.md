@@ -48,11 +48,16 @@ directory and point `PROJECT_ROOT` at it.
 ## Headline behaviour
 
 All three architectures degrade gracefully under all perturbations. The
-accuracy–stability trade-off:
+notebook-level conclusion is that structural perturbation has the largest
+impact on recommendation quality, with relative destructiveness:
 
-- **ChebNet K=3** — most accurate, but most feature-noise sensitive (~21 % NDCG@20 drop at σ = 0.20).
-- **GraphSAGE** — essentially flat under all perturbations; lowest accuracy ceiling, highest robustness.
-- **GCN** — in between on both axes.
+`structural edge dropout > edge-weight noise ≈ node-feature noise`.
 
-Across perturbation families: edge-weight noise is the mildest, node-feature
-noise the most damaging, edge dropout in between.
+The accuracy–stability trade-off:
+
+- **ChebNet K=3** — most accurate baseline, moderately sensitive to structural perturbation (~7.6 % NDCG@20 drop under edge dropout), and relatively stable under feature noise.
+- **GraphSAGE** — most robust, with minimal degradation across perturbations and only ~2.1 % drop under edge dropout.
+- **GCN** — least stable overall, with the largest drops in the notebook summary (~9.0 % under edge dropout and ~7.1 % under edge-weight noise).
+
+Across perturbation families, edge dropout is the dominant failure mode; edge
+weight noise and node-feature noise are milder and roughly comparable.
